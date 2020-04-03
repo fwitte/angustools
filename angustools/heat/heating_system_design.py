@@ -95,26 +95,6 @@ def calculate_nominal_heat_by_tech(technologies, ts):
     -------
     technologies : pandas.core.frame.DataFrame
         DataFrame containing the calculated information of the technologies.
-
-    Example
-    -------
-    >>> from angustools.heat import heating_system_design as hsd
-    >>> import pandas as pd
-    >>> ts = pd.read_csv(sys.argv[1]).dropna()
-    >>> ts.set_index('Datum', inplace=True)
-    >>> ts['Gesamt'] = ts['Gesamt'].astype(float)
-    >>> ts.index = pd.to_datetime(ts.index)
-    >>> ts.sort_index(inplace=True)
-    >>> ts.sort_values(by='Gesamt', ascending=False, inplace=True)
-    >>> ts.reset_index(inplace=True)
-    >>> ts = ts['Gesamt']
-    >>> technologien = pd.DataFrame(columns=['Q_N', 'Q_min_rel'])
-    >>> technologien.loc['BHKW'] = [np.nan, 0.55]
-    >>> technologien.loc['GuD'] = [np.nan, 0.7]
-    >>> technologien.loc['WP'] = [np.nan, 0.3]
-    >>> technologien.loc['EHK'] = [np.nan, 0.0]
-    >>> technologien = hsd.calculate_nominal_heat_by_tech(technologien, ts)
-    >>> technologien.to_csv('technologien.csv')
     """
     total = ts.sum()
     for technology in technologies.index:
