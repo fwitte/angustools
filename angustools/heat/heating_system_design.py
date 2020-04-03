@@ -55,7 +55,7 @@ def maximise_thermal_energy_output(ts, min_val_rel):
         Series containting the residual heat load demand.
     """
     ts = ts.copy()
-    area = 0
+    coverage = 0
     counter = 1
     Q_old = np.nan
     for Q in ts.values:
@@ -66,8 +66,8 @@ def maximise_thermal_energy_output(ts, min_val_rel):
         area_full_load = Q * (counter - 1)
         area_part_load = ts[(ts <= Q) & (ts >= Q * min_val_rel)].sum()
 
-        if area < area_full_load + area_part_load:
-            area = area_full_load + area_part_load
+        if coverage < area_full_load + area_part_load:
+            coverage = area_full_load + area_part_load
             Q_nom = Q
 
         counter += 1
@@ -76,7 +76,7 @@ def maximise_thermal_energy_output(ts, min_val_rel):
     ts[(ts <= Q_nom) & (ts >= Q_nom * min_val_rel)] = 0
     ts[(ts > Q_nom)] = ts - Q_nom
 
-    return Q_nom, ts
+    return Q_nom, coverage, ts
 
 
 def calculate_nominal_heat_by_tech(technologies, ts):
@@ -116,13 +116,17 @@ def calculate_nominal_heat_by_tech(technologies, ts):
     >>> technologien = hsd.calculate_nominal_heat_by_tech(technologien, ts)
     >>> technologien.to_csv('technologien.csv')
     """
+    total = ts.sum()
     for technology in technologies.index:
         ts = ts[ts > 0].round(5)
         ts.sort_values(ascending=False, inplace=True)
         ts = ts.reset_index(drop=True)
-        technologies.loc[technology, 'Q_nom'], ts = (
-            maximise_thermal_energy_output(
-                ts, technologies.loc[technology, 'Q_min_rel']))
+        Q_min_rel = technologies.loc[technology, 'Q_min_rel']
+        Q_nom, coverage, ts = (
+            maximise_thermal_energy_output(ts, Q_min_rel))
+
+        technologies.loc[technology, 'Q_nom'] = Q_nom
+        technologies.loc[technology, 'coverage'] = coverage / total
 
     technologies['Q_min'] = technologies['Q_nom'] * technologies['Q_min_rel']
     return technologies
