@@ -107,8 +107,6 @@ def calculate_nominal_heat_by_tech(technologies, ts):
     >>> ts.sort_index(inplace=True)
     >>> ts.sort_values(by='Gesamt', ascending=False, inplace=True)
     >>> ts.reset_index(inplace=True)
-    >>> y_max = ts['Gesamt'].max()
-    >>> x_max = ts.index.max()
     >>> ts = ts['Gesamt']
     >>> technologien = pd.DataFrame(columns=['Q_N', 'Q_min_rel'])
     >>> technologien.loc['BHKW'] = [np.nan, 0.55]
@@ -118,13 +116,13 @@ def calculate_nominal_heat_by_tech(technologies, ts):
     >>> technologien = hsd.calculate_nominal_heat_by_tech(technologien, ts)
     >>> technologien.to_csv('technologien.csv')
     """
-    for technologie in technologien.index:
+    for technology in technologies.index:
         ts = ts[ts > 0].round(5)
         ts.sort_values(ascending=False, inplace=True)
         ts = ts.reset_index(drop=True)
-        technologien.loc[technologie, 'Q_nom'], ts = (
+        technologies.loc[technology, 'Q_nom'], ts = (
             maximise_thermal_energy_output(
-                ts, technologien.loc[technologie, 'Q_min_rel']))
+                ts, technologies.loc[technology, 'Q_min_rel']))
 
-    technologien['Q_min'] = technologien['Q_nom'] * technologien['Q_min_rel']
-    return technologien
+    technologies['Q_min'] = technologies['Q_nom'] * technologies['Q_min_rel']
+    return technologies

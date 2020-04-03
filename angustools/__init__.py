@@ -2,5 +2,5 @@
 
 __version__ = '0.1'
 
-from angustools.heat import minimize_residual_load
-from angustools.compressedair import tespy_to_opt
+import angustools.heat
+import angustools.compressedair
