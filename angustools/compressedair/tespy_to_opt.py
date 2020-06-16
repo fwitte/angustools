@@ -17,7 +17,7 @@ import numpy as np
 
 def generate_lut_power_pressure(
         nwk, design_path, mass_obj, power_obj, pressure_obj,
-        pressure_range, power_range):
+        power_range, pressure_range):
     r"""
     Generate a lookup table over power and pressure inputs.
 
@@ -61,6 +61,7 @@ def generate_lut_power_pressure(
 
     for key in nwk.busses.keys():
         df[key] = pd.DataFrame(columns=pressure_range)
+        busses[key] = []
 
     for power in power_range:
         mass_flow = []
@@ -93,7 +94,7 @@ def generate_lut_power_pressure(
         for key in nwk.busses.keys():
             df[key].loc[power] = busses[key]
 
-        df.loc[power] = mass_flow
+        df['mass flow'].loc[power] = mass_flow
 
     return df
 
@@ -115,9 +116,9 @@ def linearise_lut(df):
     x : ndarray
         Array with paramaters of the linearised plane.
     """
-    x_array = data.index.values[::-1]
-    y_array = pd.to_numeric(data.columns.values)[::-1]
-    z_matrix = data.values
+    x_array = df.index.values[::-1]
+    y_array = pd.to_numeric(df.columns.values)[::-1]
+    z_matrix = df.values
 
     grid_num = len(x_array)
 
@@ -128,16 +129,16 @@ def linearise_lut(df):
     A = np.ones((3, 3))
     A[0, 0] = (x_mod * x_mod).sum()
     A[0, 1] = (x_mod * y_mod).sum()
-    A[0, 2] = x_values.sum()
+    A[0, 2] = x_mod.sum()
     A[1, 0] = A[0, 1]
     A[1, 1] = (y_mod * y_mod).sum()
     A[1, 2] = y_mod.sum()
     A[2, 0] = A[0, 2]
     A[2, 1] = A[1, 2]
-    A[2, 2] = len(x_values)
+    A[2, 2] = len(x_mod)
 
     b = np.ones(3)
-    b[0] = (x_values * z_mod).sum()
+    b[0] = (x_mod * z_mod).sum()
     b[1] = (y_mod * z_mod).sum()
     b[2] = z_mod.sum()
 
