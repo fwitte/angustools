@@ -89,12 +89,12 @@ def generate_lut_power_pressure(
             else:
                 mass_flow += [mass_obj.m.val_SI]
                 for key, value in nwk.busses.items():
-                    busses[key] += [value.P.val]
+                    busses[key] += [value.P.val / 1e6]
 
         for key in nwk.busses.keys():
-            df[key].loc[power] = busses[key]
+            df[key].loc[abs(power)] = busses[key]
 
-        df['mass flow'].loc[power] = mass_flow
+        df['mass flow'].loc[abs(power)] = mass_flow
 
     return df
 
