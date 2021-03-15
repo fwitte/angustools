@@ -17,7 +17,7 @@ import numpy as np
 
 def generate_lut_power_pressure(
         nwk, design_path, mass_obj, power_obj, pressure_obj,
-        power_range, pressure_range):
+        power_range, pressure_range, power_design, pressure_design):
     r"""
     Generate a lookup table over power and pressure inputs.
 
@@ -70,14 +70,26 @@ def generate_lut_power_pressure(
         power_obj.set_attr(P=power * 1e6)
         for p in pressure_range:
             pressure_obj.set_attr(p=p)
-            try:
+            if p == pressure_range[0]:
+                pressure_obj.set_attr(p=pressure_design)
+                power_obj.set_attr(P=power_design)
                 nwk.solve(
                     'offdesign',
                     design_path=design_path,
                     init_path=design_path)
+                for power_step in np.linspace(power * 1e6, power_design, 3, endpoint=False)[::-1]:
+                    power_obj.set_attr(P=power_step)
+                    nwk.solve(
+                        'offdesign',
+                        design_path=design_path)
 
-            except ValueError:
-                pass
+                for p_step in np.linspace(p, pressure_design, 3, endpoint=False)[::-1]:
+                    pressure_obj.set_attr(p=p_step)
+                    nwk.solve(
+                        'offdesign',
+                        design_path=design_path)
+            else:
+                nwk.solve('offdesign', design_path=design_path)
 
             if nwk.res[-1] > 1e-3 or nwk.lin_dep is True:
                 mass_flow += [np.nan]
