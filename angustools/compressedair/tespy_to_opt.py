@@ -77,13 +77,21 @@ def generate_lut_power_pressure(
                     'offdesign',
                     design_path=design_path,
                     init_path=design_path)
-                for power_step in np.linspace(power * 1e6, power_design, 3, endpoint=False)[::-1]:
+                for power_step in np.linspace(
+                        power * 1e6, power_design,
+                        # steps of 10 % relative to nominal power
+                        int(abs((power * 1e6 - power_design) // (power_design / 10))),
+                        endpoint=False)[::-1]:
                     power_obj.set_attr(P=power_step)
                     nwk.solve(
                         'offdesign',
                         design_path=design_path)
 
-                for p_step in np.linspace(p, pressure_design, 3, endpoint=False)[::-1]:
+                for p_step in np.linspace(
+                        p, pressure_design,
+                        # steps of 10 % relative to nominal pressure
+                        int(abs((p - pressure_design) // (pressure_design / 10))),
+                        endpoint=False)[::-1]:
                     pressure_obj.set_attr(p=p_step)
                     nwk.solve(
                         'offdesign',
